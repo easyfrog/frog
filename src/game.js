@@ -17,6 +17,9 @@ function Game(container, config) {
     s.camera = new THREE.PerspectiveCamera(50, s.containerRect.width / s.containerRect.height, 1, 10000);
     s.scenes = [];
 
+    s.clock = new THREE.Clock();
+    s.lazyUpdateRate = 20;
+
     // 默认Scene
     s.scenes.push(new THREE.Scene());
     s.currentScene = s.scenes[0];
@@ -45,7 +48,7 @@ Game.prototype = {
         return res;
     },
 
-    _addEvents: (function() {
+    _addEvents: function() {
         var s = this;
         var _lastMousePick, curMouse, lastMouse;
 
@@ -98,7 +101,7 @@ Game.prototype = {
             s.currentPicked = null;
             s.isMouseDown = false;
         }
-        
+
         return function() {
             // Mouse && Touch
             s.container.addEventListener('mousedown', onMouseDown, false);
@@ -112,7 +115,7 @@ Game.prototype = {
             document.addEventListener('keydown', onKeyDown, false);
             document.addEventListener('keyup', onKeyUp, false);
         }
-    }()),
+    }(),
 
     getPickObject: function(mouse, sceneID) {
         var s = this;
@@ -127,13 +130,30 @@ Game.prototype = {
         return null;
     },
 
-    update: function(once) {
-        var s = this;
-        if (!once) {
-            requestAnimationFrame(s.update.bind(s, once));
-        }
+    update: function() {
+        var cnt = 0;
 
-        s.renderer.clear();
-        s.renderer.render(s.currentScene, s.camera);
-    };
+        return function(once) {
+            var s = this;
+            if (!once) {
+                requestAnimationFrame(s.update.bind(s, once));
+                cnt ++;
+            }
+
+            if (cnt == s.lazyUpdateRate) {
+                cnt = 0;
+                s.emit('lazyUpdate');
+            }
+
+            s.emit('update', s.clock.getDelta());
+
+            s.renderer.clear();
+            s.renderer.render(s.currentScene, s.camera);
+        }
+    }(),
+
+    resize: function() {
+        var s = this;
+        
+    },
 };

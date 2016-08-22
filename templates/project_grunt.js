@@ -8,8 +8,8 @@ module.exports = function(grunt) {
 					{
 						src: [
 							 "libs/extra/OrbitControls_ztc.js",
-							 "libs/edgeToolsBase.js",
-							 "libs/src/**.js",
+							 "libs/*.js",
+							 "src/**.js",
 						],
 						dest: '<%= grunt.projectFolder %>/libs/frog.js'
 					}, {
