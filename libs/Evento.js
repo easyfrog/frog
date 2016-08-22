@@ -2,7 +2,7 @@
  * smokesignals
  */
 
-fm.Evento = {
+Evento = {
     convert: function(obj, handlers) {
         // we store the list of handlers as a local variable inside the scope
         // so that we don't have to add random properties to the object we are
@@ -81,15 +81,3 @@ fm.Evento = {
         return obj;
     }
 };
-
-//for window resize event!
-// fm.addEvent = function(object, type, callback) {
-//     if (object == null || typeof(object) == 'undefined') return;
-//     if (object.addEventListener) {
-//         object.addEventListener(type, callback, false);
-//     } else if (object.attachEvent) {
-//         object.attachEvent("on" + type, callback);
-//     } else {
-//         object["on"+type] = callback;
-//     }
-// };

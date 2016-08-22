@@ -8,31 +8,6 @@ module.exports = function(grunt) {
 		}
 	});
 
-	// 必要的类库文件
-	grunt.config.merge({
-		copy: {
-			libs:{
-				files:[
-					{src:"js/threejs/three.min.js", dest: "<%= grunt.projectFolder %>/libs/th.js"},
-					{src:"js/loaders/sea3d.min.js", dest: "<%= grunt.projectFolder %>/libs/se.js"}
-				]
-			}
-		},
-		uglify: {
-			allEngine: {	// easygame engine all in one
-				src:[
-					"js/threejs/Detector.js", 
-					"js/threejs/three.min.js",
-					"js/loaders/sea3d.min.js",
-					"js/controls/OrbitControls.js",
-					"js/webShow/*.js",
-					"js/tools/edgeToolsBase.js",
-				],
-				dest:'build/easygame.min.js'
-			}
-		}
-	});
-
 	// 告诉grunt我们将使用插件
 	grunt.loadNpmTasks('grunt-browserify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
@@ -43,17 +18,10 @@ module.exports = function(grunt) {
 		var taskList;
 		if (grunt.needLibs == true || grunt.needLibs == undefined) {
 			// libs version
-			if (grunt.needLibsVersion) {
-				var _path = 'js/libs/versions/' + grunt.needLibsVersion;
-				if (grunt.file.exists(_path)) {
-					grunt.file.copy(_path + '/sea3d/sea3d.min.js', grunt.projectFolder + '/libs/se.js');
-					grunt.file.copy(_path + '/threejs/three.min.js', grunt.projectFolder + '/libs/th.js');
-					taskList = grunt.currentTask;
-				} else {
-					taskList = ['copy:libs'].concat(grunt.currentTask);
-				}
-			} else {
-				taskList = ['copy:libs'].concat(grunt.currentTask);
+			var _path = 'libs/threejs/' + grunt.needLibsVersion;
+			if (grunt.file.exists(_path)) {
+				grunt.file.copy(_path + '/three.min.js', grunt.projectFolder + '/libs/th.js');
+				taskList = grunt.currentTask;
 			}
 		} else {
 			taskList = grunt.currentTask;
