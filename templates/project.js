@@ -1,4 +1,4 @@
-glo = glo || {};
+window.glo = window.glo || {};
 
 // 项目名称
 var _projectName = '<%= grunt.project %>';
@@ -30,32 +30,29 @@ AdobeEdge.bootstrapCallback(function(compId) {
 
 function init() {
 	// create game instance
-	game = new Game(glo.container, {
-		rendererConfig: {
-			antialias: true,
-			alpha: true
-		},
-		debug: true
-	});
+	game = new Game(glo.container);
 
-	// load scene
-	game.load('models/<%= grunt.project %>.sea', 'inno');
+    // default use SEA3D file
+    var loaderCom = require('../../libs/coms/seaLoader');
+    glo.loader = new loaderCom(game.currentScene);
+    glo.sea = glo.loader.sea;
 
-	// loading progress
-	game.addEventListener(Game.PROGRESS, function(p) {
-		console.log((p.progress * 100).toFixed(1) + '%');
-		/*
-		glo.progressText.html((p.progress * 100).toFixed(1) + '%');
-		if (p.type == 'sea3d_download') {
-			glo.progressStatus.text('下载中...');
-		} else {
-			glo.progressStatus.text('场景构建中...');
-		}
-		//*/
-	});
+    glo.loader.load(['./models/<%= grunt.project %>.tjs.sea'], '<%= grunt.project %>', onLoadComplete);
+
+    glo.loader.on('progress', function(p) {
+        console.log(p.progress + '%');
+        /*
+        glo.progressText.html((p.progress * 100).toFixed(1) + '%');
+        if (p.type == 'sea3d_download') {
+            glo.progressStatus.text('下载中...');
+        } else {
+            glo.progressStatus.text('场景构建中...');
+        }
+        //*/
+    });
 }
 
-function onLoadComplete() {
+function onLoadComplete(group, remain) {
 	// scene load complete
 
 }

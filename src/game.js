@@ -7,26 +7,41 @@ function Game(container, config) {
     // event
     Evento.convert(s);
 
+    this.config = config || {}
+    this.config.debug = this.config.debug == undefined ? true : this.config.debug;
     s.container = container;
-
-    s.renderer = new THREE.WebGLRenderer({antilias: true, alpha: true});
+    s.renderer = new THREE.WebGLRenderer({antialias: true, alpha: (this.config.alphaMode == undefined || true)});
     s.renderer.autoClear = false;
     s.container.appendChild(s.renderer.domElement);
 
-    s.containerRect = s.container.getBoundingClientRect();
-    s.camera = new THREE.PerspectiveCamera(50, s.containerRect.width / s.containerRect.height, 1, 10000);
+    s.camera = new THREE.PerspectiveCamera(50, s.container.offsetWidth / s.container.offsetHeight, 1, 10000);
+    s.currentCamera = s.camera;
     s.scenes = [];
 
     s.clock = new THREE.Clock();
-    s.lazyUpdateRate = 20;
+    s.lazyUpdateRate = this.config.lazyUpdateRate || 15;
 
     // 默认Scene
     s.scenes.push(new THREE.Scene());
-    s.currentScene = s.scenes[0];
+    s.sceneID = 0;
 
-    s.controler = new THREE.OrbitControls(s.camera, container);
+    s.controller = new THREE.OrbitControls(s.camera, container);
+    s.controller.rotateSpeed = .3;
 
     s.rayCast = new THREE.Raycaster();
+    s.pause = false;
+
+    // component
+    s.components = [];
+
+    // singleton
+    if (!Game.instance) {
+        Game.instance = this;
+    }
+
+    // size
+    s.resize();
+
     // 添加事件
     s._addEvents();
 
@@ -37,10 +52,29 @@ function Game(container, config) {
 Game.prototype = {
     constructor: Game,
 
+    get deltaTime() {
+        return this.clock.getDelta();
+    },
+
+    get currentScene() {
+        return this.scenes[this.sceneID];
+    },
+
+    addScene: function() {
+        var scene = new THREE.Scene()
+        scene.sceneID = this.scenes.length;
+        this.scenes.push(scene);
+        return scene;
+    },
+
+    getScene: function(index) {
+        return this.scenes[index];
+    },
+
     // 得到拾取的屏幕点
     _getPick: function(e) {
         var rect = this.containerRect;
-        var res = new fm.Vector2();
+        var res = new THREE.Vector2();
 
         res.x = (((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width) * 2 - 1;
         res.y = -(((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height) * 2 + 1;
@@ -48,84 +82,96 @@ Game.prototype = {
         return res;
     },
 
+    _log: function(eventType, message) {
+        if (this.config.debug) {
+            console.log('-->', eventType.toUpperCase(), ':', message);
+        }
+    },
+
     _addEvents: function() {
-        var s = this;
         var _lastMousePick, curMouse, lastMouse;
 
         function onKeyDown(e) {
-            s.emit('keydown', e);
+            this.invokeComponent('onKeyDown', e);
+            this.emit('keydown', e);
+            this._log('keydown', e);
         }
 
         function onKeyUp(e) {
-            s.emit('keyup', e);
+            this.invokeComponent('onKeyUp', e);
+            this.emit('keyup', e);
+            this._log('keyup', e);
         }
 
         function onMouseDown(e) {
             e.preventDefault();
-            s.isMouseDown = true;
-            _lastMousePick = s._getPick(e);
+            this.isMouseDown = true;
+            _lastMousePick = this._getPick(e);
             lastMouse = _lastMousePick;
 
-            s.currentPicked = s.getPickObject(_lastMousePick);
+            this.currentPicked = this.getPickObject(_lastMousePick);
             lastMouse = curMouse = _lastMousePick;
 
-            s.emit('mousedown', e);
+            this.invokeComponent(this.currentPicked, 'onMouseDown', e);
+            this.emit('mousedown', e);
         }
 
         function onMouseMove(e) {
             e.preventDefault();
-            curMouse = s._getPick(e);
+            curMouse = this._getPick(e);
 
             if (lastMouse) {
-                s.mouseMovement = curMouse.clone().sub(lastMouse);
+                this.mouseMovement = curMouse.clone().sub(lastMouse);
                 lastMouse = curMouse;
             }
 
-            s.emit('mousemove', e);
+            this.invokeComponent(this.currentPicked, 'onMouseMove', e);
+            this.emit('mousemove', e);
         }
 
         function onMouseUp(e) {
             e.preventDefault();
 
-            s.emit('mouseup', e);
+            this.invokeComponent(this.currentPicked, 'onMouseUp', e);
+            this.emit('mouseup', e);
 
             if (!e.touches) {
-                curMouse = getPick(e);
+                curMouse = this._getPick(e);
             }
 
-            if ((e.button == 0 || e.touches) && _lastMousePick.distanceTo(curMouse) < 5) {
-                if (s.currentPicked) {
-                    s.emit('picked', s.currentPicked);
+            if ((e.button == 0 || e.touches) && _lastMousePick.distanceTo(curMouse) < .004) {
+                if (this.currentPicked) {
+                    this.invokeComponent(this.currentPicked, 'onPicked');
+                    this.emit('picked', this.currentPicked);
+                    this._log('picked', this.currentPicked);
                 }
             }
-            s.currentPicked = null;
-            s.isMouseDown = false;
+            this.isMouseDown = false;
         }
 
         return function() {
+            var s = this;
             // Mouse && Touch
-            s.container.addEventListener('mousedown', onMouseDown, false);
-            s.container.addEventListener('mousemove', onMouseMove, false);
-            s.container.addEventListener('mouseup', onMouseUp, false);
-            s.container.addEventListener('touchstart', onMouseDown, false);
-            s.container.addEventListener('touchmove', onMouseMove, false);
-            s.container.addEventListener('touchend', onMouseUp, false);
+            s.container.addEventListener('mousedown', onMouseDown.bind(s), false);
+            s.container.addEventListener('mousemove', onMouseMove.bind(s), false);
+            s.container.addEventListener('mouseup', onMouseUp.bind(s), false);
+            s.container.addEventListener('touchstart', onMouseDown.bind(s), false);
+            s.container.addEventListener('touchmove', onMouseMove.bind(s), false);
+            s.container.addEventListener('touchend', onMouseUp.bind(s), false);
 
             // Key
-            document.addEventListener('keydown', onKeyDown, false);
-            document.addEventListener('keyup', onKeyUp, false);
+            document.addEventListener('keydown', onKeyDown.bind(s), false);
+            document.addEventListener('keyup', onKeyUp.bind(s), false);
         }
     }(),
 
-    getPickObject: function(mouse, sceneID) {
+    getPickObject: function(mouse) {
         var s = this;
         s.rayCast.setFromCamera(mouse, s.camera);
 
-        sceneID == undefined && (sceneID = 0);
-
-        var intersects = s.rayCast.intersectObjects(s.scenes[sceneID]);
+        var intersects = s.rayCast.intersectObjects(s.scenes[s.sceneID].children, true);
         if (intersects.length > 0) {
-            return intersects[0];
+            return intersects[0].object;
         }
         return null;
     },
@@ -135,6 +181,10 @@ Game.prototype = {
 
         return function(once) {
             var s = this;
+            if (s.pause) {
+                return;
+            }
+            
             if (!once) {
                 requestAnimationFrame(s.update.bind(s, once));
                 cnt ++;
@@ -145,15 +195,41 @@ Game.prototype = {
                 s.emit('lazyUpdate');
             }
 
-            s.emit('update', s.clock.getDelta());
+            var deltaTime = s.deltaTime;
+            s.invokeComponent(s, 'update', deltaTime);
+            s.emit('update', deltaTime);
 
             s.renderer.clear();
-            s.renderer.render(s.currentScene, s.camera);
+            s.renderer.render(s.scenes[s.sceneID], s.currentCamera);
         }
     }(),
 
     resize: function() {
         var s = this;
-        
+        s.containerRect = s.container.getBoundingClientRect();
+
+        s.width = s.container.offsetWidth;
+        s.height = s.container.offsetHeight;
+
+        s.renderer.setSize(s.width, s.height);
+        s.renderer.setPixelRatio(window.devicePixelRatio || 1);
+
+        s.camera.aspect = s.width / s.height;
+        s.camera.updateProjectionMatrix();
+    },
+
+    invokeComponent: function(object, comName, params) {
+        if (!object || !object.components) {
+            return;
+        }
+        for (var i = 0; i < object.components.length; i++) {
+            var com = object.components[i];
+            if (!com.enabled) {
+                continue;
+            }
+            if (com[comName]) {
+                com[comName](param);
+            }
+        }
     },
 };

@@ -3,18 +3,26 @@ module.exports = function(grunt) {
 	grunt.config.merge({
 		// uglify插件的配置信息
 		uglify: {
+			options: {
+				banner: '/*! easyfrog <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */\n',
+				compress: {
+					unused: true,
+					dead_code: true
+				}
+			},
 			<%= grunt.project %>: {
 				files: [ 
 					{
 						src: [
-							 "libs/extra/OrbitControls_ztc.js",
+							 "libs/extra/controls/OrbitControls.js",
 							 "libs/*.js",
 							 "src/**.js",
 						],
 						dest: '<%= grunt.projectFolder %>/libs/frog.js'
 					}, {
 						src: [
-							"build/<%= grunt.project %>.browserify.js" // 合入模块后的 project.js
+							"libs/edge/edgeToolsBase.js",
+							"build/<%= grunt.project %>.browserify.js"
 						],
 						dest: '<%= grunt.projectFolder %>/main.js'
 					}
@@ -50,7 +58,7 @@ module.exports = function(grunt) {
 			grunt.needLibs = true;
 
 			var targetVersion = '<%= grunt.targetVersion %>';
-			if (targetVersion == '') {targetVersion = 79;}
+			if (targetVersion == '') {targetVersion = 'r79';}
 
 			// 库文件版本 r72 | r76
 			grunt.needLibsVersion = version || targetVersion;
