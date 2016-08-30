@@ -170,8 +170,11 @@ Game.prototype = {
         s.rayCast.setFromCamera(mouse, s.camera);
 
         var intersects = s.rayCast.intersectObjects(s.scenes[s.sceneID].children, true);
-        if (intersects.length > 0) {
-            return intersects[0].object;
+        for (var i = 0; i < intersects.length; i++) {
+            var intersect = intersects[i];
+            if (intersect.mouseEnabled == undefined || object.mouseEnabled) {
+                return intersect.object;
+            }
         }
         return null;
     },
@@ -181,13 +184,14 @@ Game.prototype = {
 
         return function(once) {
             var s = this;
-            if (s.pause) {
-                return;
-            }
             
             if (!once) {
                 requestAnimationFrame(s.update.bind(s, once));
                 cnt ++;
+            }
+
+            if (s.pause) {
+                return;
             }
 
             if (cnt == s.lazyUpdateRate) {

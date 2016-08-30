@@ -102,7 +102,7 @@ Tween._getValue = function(prop, arr, target, attr) {
 
     if (typeof res.old == 'number') {
         res.delta = attr[prop] - target[prop];
-    } else if (res.old instanceof Vector3 || res.old instanceof Color || res.old instanceof Quaternion) {
+    } else if (res.old instanceof THREE.Vector3 || res.old instanceof THREE.Color || res.old instanceof THREE.Quaternion) {
         res.old = res.old.clone();
         res.delta = attr[prop].clone();
     }
@@ -117,9 +117,9 @@ Tween._setValue = function(target, oldValue, f) {
 
     if (typeof old == 'number') {
         target[prop] = old + f * delta;
-    } else if (old instanceof Vector3 || old instanceof Color) {
+    } else if (old instanceof THREE.Vector3 || old instanceof THREE.Color) {
         target[prop].copy(old.clone().lerp(delta, f));
-    } else if (old instanceof Quaternion) {
+    } else if (old instanceof THREE.Quaternion) {
         target[prop].copy(old.clone().slerp(delta, f));
     }
 }

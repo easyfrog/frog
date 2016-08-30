@@ -10,7 +10,6 @@ var replaceCode = function( src, target, replace ) {
 
 var replaceCodeList = function( src, target, replace ) {
     for ( var i = 0; i < target.length; i ++ ) {
-        console.log(i);
         src = replaceCode( src, target[ i ], replace[ i ] );
     }
     return src;
@@ -62,6 +61,7 @@ module.exports = function( ps ) {
 
     phongMat.uniforms.envMap.value = ps.envMap;
     phongMat.uniforms.map.value = ps.map;
+    phongMat.uniforms.diffuse.value = ps.color;
 
     phongMat.defines = {
         USE_MAP: ps.map != undefined,

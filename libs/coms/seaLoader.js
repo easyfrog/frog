@@ -5,13 +5,14 @@ require('../extra/loaders/sea3d/SEA3DLoader');
 function SeaLoader(container) {
     Evento.convert(this);
 
+    var self = this;
     this.sea = new THREE.SEA3D({
         container: container,
         autoPlay: false
     });
 
-    this.sea.onComplete = this.onComplete.bind(this);
-    this.sea.onProgress = this.onProgress.bind(this);
+    this.sea.addEventListener('sea3d_progress', this.onProgress.bind(this));
+    this.sea.addEventListener('sea3d_complete', this.onComplete.bind(this));
 
     this._container = container;
 
@@ -33,16 +34,57 @@ SeaLoader.prototype = {
         this._container = val;
     },
 
+    _getFromArray: function (arr, name) {
+        if (!arr) {return null;}
+        for (var i = 0; i < arr.length; i++) {
+            var item = arr[i];
+            if (item.name == name) {
+                return item;
+            }
+        };
+        return null;
+    },
+
+    getMesh: function(name) {
+        return this._getFromArray(this.sea.meshes, name);
+    },
+
+    getDummy: function(name) {
+        return this._getFromArray(this.sea.dummys, name);
+    },
+
+    getMaterial: function(name) {
+        return this._getFromArray(this.sea.materials, name);
+    },
+
+    getLight: function(name) {
+        return this._getFromArray(this.sea.lights, name);
+    },
+
+    getCubeMap: function(name) {
+        return this._getFromArray(this.sea.cubemaps, name);
+    },
+
+    getCamera: function(name) {
+        return this._getFromArray(this.sea.cameras, name);
+    },
+
+    getTexture: function(name) {
+        return this._getFromArray(this.sea.textures, name);
+    },
+
     _load: function(work) {
-        var gp = this.container.getObjectByName(work.groupName);
+        var s = this;
+
+        var gp = s.container.getObjectByName(work.groupName);
         if (!gp) {
             gp = new THREE.Group();
             gp.name = work.groupName;
-            this.container.add(gp);
+            s.container.add(gp);
         }
 
-        this.sea.container = gp;
-        this.sea.load(work.url);
+        s.sea.container = gp;
+        s.sea.load(work.url);
     },
 
     load: function(url, groupName, callback) {
@@ -62,7 +104,7 @@ SeaLoader.prototype = {
         }
 
         if (!s.isLoading) {
-            isLoading = true;
+            s.isLoading = true;
             s.currentWork = s.queue.shift();
             s._load(s.currentWork);
         }
