@@ -125,4 +125,3 @@ com_Angel.prototype.update = function() {
 };
 
 module.exports = com_Angel;
-

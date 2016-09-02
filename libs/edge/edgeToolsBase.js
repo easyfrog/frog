@@ -747,67 +747,66 @@
 	 * 		constraint: 限制 'x'|'y'|'none'(default)
 	 * 		limit: 		in|edge (in:限定在父物体的内部. edge:边缘限定)
 	 */
-	var DragManager = function() {
-		DragManager.instance = this;
-	};
-
-	DragManager.prototype.addDragObject = function( data ) {
-		data.dom.constraint  = data.constraint;
-		data.dom.limit       = data.limit || '';
-		data.dom.isMouseDown = false;
-		data.dom.lastPick    = {x:0,y:0};
-		data.dom.currentPick = {x:0,y:0};
-
-		this.addEvents(data.dom);
-	};
-
-	DragManager.prototype.removeDragObject = function( dom ) {
+	var drag = function(data) {
 		var s = this;
+		s.dom = data.dom;
+		s.constraint = data.constraint
+		s.limit = data.limit;
+		s.lastPick    = {x:0,y:0};
+		s.currentPick = {x:0,y:0};
 
-		dom.constraint = dom.limit = dom.isMouseDown = dom.lastPick = dom.currentPick = undefined;
-		dom.removeEventListener('mousedown',_mouseDown);
-		dom.removeEventListener('mousemove',_mouseMove);
-		dom.removeEventListener('mouseup',_mouseUp);
-		dom.removeEventListener('touchstart',_mouseDown);
-		dom.removeEventListener('touchmove',_mouseMove);
-		dom.removeEventListener('touchend',_mouseUp);
+		s._mouseDown = mouseDown.bind(s);
+		s._mouseMove = mouseMove.bind(s);
+		s._mouseUp = mouseUp.bind(s);
+
+		s.scale = window.t == undefined ? 1 : t.stageScale ? t.stageScale : 1;
+
+		this.connect();
 	};
 
-	function _mouseDown(e) {
-		DragManager.instance.mouseDown(e);
-	}
-
-	function _mouseMove(e) {
-		DragManager.instance.mouseMove(e);
-	}
-
-	function _mouseUp(e) {
-		DragManager.instance.mouseUp(e);
-	}
-
-	DragManager.prototype.mouseDown = function(e) {
-		var pick = getPick(e);
-		var dom = e.currentTarget;
-
-		dom.isMouseDown = true;
-		dom.lastPick = pick;
+	drag.prototype.connect = function() {
+		var s = this;
+		document.body.addEventListener('mousedown',s._mouseDown);
+		document.body.addEventListener('mousemove',s._mouseMove);
+		document.body.addEventListener('mouseup',s._mouseUp);
+		document.body.addEventListener('touchstart',s._mouseDown);
+		document.body.addEventListener('touchmove',s._mouseMove);
+		document.body.addEventListener('touchend',s._mouseUp);
 	};
 
-	DragManager.prototype.mouseMove = function(e) {
-		var pick = getPick(e);
-		var dom = e.currentTarget;
+	drag.prototype.disconnect = function(  ) {
+		var s = this;
+		document.body.removeEventListener('mousedown',s._mouseDown);
+		document.body.removeEventListener('mousemove',s._mouseMove);
+		document.body.removeEventListener('mouseup',s._mouseUp);
+		document.body.removeEventListener('touchstart',s._mouseDown);
+		document.body.removeEventListener('touchmove',s._mouseMove);
+		document.body.removeEventListener('touchend',s._mouseUp);
+	};
 
-		if (!dom.isMouseDown) {
+	function mouseDown(e) {
+		if (e.target == this.dom) {
+			this.lastPick = getPick(e);
+			this.isMouseDown = true;
+		}
+	};
+
+	function mouseMove(e) {
+		var s = this;
+		var pick = getPick(e);
+		var dom = s.dom;
+
+		if (!s.isMouseDown) {
 			return;
 		};
 
-		var _x = pick.x - dom.lastPick.x;
-		var _y = pick.y - dom.lastPick.y;
+		var _x = (pick.x - s.lastPick.x) / s.scale;
+		var _y = (pick.y - s.lastPick.y) / s.scale;
 
 		var toX = dom.offsetLeft + _x;
 		var toY = dom.offsetTop + _y;
 
-		if (dom.limit == 'in') {			// 限定在父物体的内部
+		if (s.limit == 'in') {			// 限定在父物体的内部
 			if (toX < 0) {
 				toX = 0;
 			};
@@ -820,7 +819,7 @@
 			if (toY > dom.parentNode.offsetHeight - dom.offsetHeight) {
 				toY = dom.parentNode.offsetHeight - dom.offsetHeight
 			};
-		} else if (dom.limit == 'edge') {	// 限定到父物体的边缘,拖拽物体大于父物体
+		} else if (s.limit == 'edge') {	// 限定到父物体的边缘,拖拽物体大于父物体
 			if (toX > 0 || toX < dom.parentNode.offsetWidth - dom.offsetWidth) {
 				toX = dom.offsetLeft;
 			};
@@ -829,7 +828,7 @@
 			};
 		}
 
-		switch(dom.constraint) {
+		switch(s.constraint) {
 			case 'x':
 				dom.style.left = toX + 'px';
 			break;
@@ -842,21 +841,15 @@
 			break;
 		}
 
-		dom.lastPick = pick;
+		if (s.onChange) {
+			s.onChange(toX, toY);
+		}
+
+		s.lastPick = pick;
 	};
 
-	DragManager.prototype.mouseUp = function(e) {
-		var dom = e.currentTarget;
-		dom.isMouseDown = false;
-	};
-
-	DragManager.prototype.addEvents = function(dom) {
-		dom.addEventListener('mousedown',_mouseDown);
-		dom.addEventListener('mousemove',_mouseMove);
-		dom.addEventListener('mouseup',_mouseUp);
-		dom.addEventListener('touchstart',_mouseDown);
-		dom.addEventListener('touchmove',_mouseMove);
-		dom.addEventListener('touchend',_mouseUp);
+	function mouseUp(e) {
+		this.isMouseDown = false;
 	};
 
 	function getPick(e) {
@@ -866,7 +859,7 @@
 		};
 	}
 
-	window.drag = DragManager;
+	window.drag = drag;
 }());
 
 /*

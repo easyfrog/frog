@@ -33,9 +33,9 @@ THREE.SEA3D = function( config ) {
 
 };
 
-THREE.SEA3D.prototype = Object.assign( Object.create( THREE.EventDispatcher.prototype ), {
+THREE.SEA3D.prototype = Object.create(THREE.EventDispatcher.prototype);
 
-	constructor : THREE.SEA3D,
+Object.defineProperties(THREE.SEA3D.prototype, {
 
 	container : {
 
@@ -53,7 +53,7 @@ THREE.SEA3D.prototype = Object.assign( Object.create( THREE.EventDispatcher.prot
 
 	}
 
-} );
+});
 
 //
 //	Domain

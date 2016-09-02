@@ -2,12 +2,12 @@ require('../extra/loaders/sea3d/SEA3D');
 require('../extra/loaders/sea3d/SEA3DLZMA');
 require('../extra/loaders/sea3d/SEA3DLoader');
 
-function SeaLoader(container) {
+function SeaLoader(container, game) {
     Evento.convert(this);
 
-    var self = this;
+    game = game || Game.instance;
+
     this.sea = new THREE.SEA3D({
-        container: container,
         autoPlay: false
     });
 
@@ -20,8 +20,17 @@ function SeaLoader(container) {
     this.queue = [];
     this.isLoading = false;
 
+    if (!SeaLoader.allreadyAddUpdate) {
+        SeaLoader.allreadyAddUpdate = true;
+        game.on('update', function(dt) {
+            THREE.SEA3D.AnimationHandler.update(dt);
+        });
+    }
+
     this.currentWork = null;
 };
+
+SeaLoader.allreadyAddUpdate = false;
 
 SeaLoader.prototype = {
     constructor: SeaLoader,
@@ -111,6 +120,8 @@ SeaLoader.prototype = {
     },
 
     onComplete: function() {
+        this.container.add(this.sea.container);
+
         if (this.currentWork.callback) {
             this.currentWork.callback(this.sea.container, this.queue.length);
         }

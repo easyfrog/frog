@@ -14,7 +14,7 @@ function Game(container, config) {
     s.renderer.autoClear = false;
     s.container.appendChild(s.renderer.domElement);
 
-    s.camera = new THREE.PerspectiveCamera(50, s.container.offsetWidth / s.container.offsetHeight, 1, 10000);
+    s.camera = new THREE.PerspectiveCamera((config.fov || 45), s.container.offsetWidth / s.container.offsetHeight, 1, 10000);
     s.currentCamera = s.camera;
     s.scenes = [];
 
@@ -69,6 +69,51 @@ Game.prototype = {
 
     getScene: function(index) {
         return this.scenes[index];
+    },
+
+    getObject: function(name, sceneID) {
+        if (sceneID == undefined) {
+            sceneID = 0;
+        }
+
+        return this.scenes[sceneID].getObjectByName(name);
+    },
+
+    /**
+     * 指定物体(组), 来播放指定的动画
+     */
+    playAnimation: function(objects, animationName, timeScale, whenFirstComplete, retainPos) {
+        animationName = animationName || 'general';
+        timeScale = timeScale || 1;
+
+        // objects = objects || Game.instance.sea.meshes;
+        if (!(objects instanceof Array)) {
+            objects = [].concat(objects);
+        }
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+            var anim = obj.animator;
+            if (anim) {
+                var clip = anim.animationsData[animationName];
+            }
+
+            if (anim && clip) {
+                if (i == 0) {
+                    var oldAnimComplete = clip.onComplete;
+                    clip.onComplete = function() {
+                        if (whenFirstComplete) {
+                            whenFirstComplete();
+                        }
+                        clip.onComplete = oldAnimComplete;
+                    };
+                }
+
+                anim.timeScale = timeScale;
+
+                offset = retainPos && anim.currentAnimationAction ? anim.currentAnimationAction.time : undefined;
+                anim.play(animationName, 0, offset);
+            }
+        };
     },
 
     // 得到拾取的屏幕点
@@ -204,9 +249,18 @@ Game.prototype = {
             s.emit('update', deltaTime);
 
             s.renderer.clear();
-            s.renderer.render(s.scenes[s.sceneID], s.currentCamera);
+
+            if (s.custormRenderFunction) {
+                s.custormRenderFunction(deltaTime);
+            } else {
+                s._render();
+            }
         }
     }(),
+
+    _render: function() {
+        this.renderer.render(this.scenes[this.sceneID], this.currentCamera);
+    },
 
     resize: function() {
         var s = this;

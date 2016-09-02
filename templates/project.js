@@ -35,7 +35,6 @@ function init() {
     // default use SEA3D file
     var loaderCom = require('../../libs/coms/seaLoader');
     glo.loader = new loaderCom(game.currentScene);
-    glo.sea = glo.loader.sea;
 
     glo.loader.load(['./models/<%= grunt.project %>.tjs.sea'], '<%= grunt.project %>', onLoadComplete);
 
