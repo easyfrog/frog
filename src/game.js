@@ -10,9 +10,11 @@ function Game(container, config) {
     this.config = config || {}
     this.config.debug = this.config.debug == undefined ? true : this.config.debug;
     s.container = container;
-    s.renderer = new THREE.WebGLRenderer({antialias: true, alpha: (this.config.alphaMode == undefined || true)});
-    s.renderer.autoClear = false;
-    s.container.appendChild(s.renderer.domElement);
+
+    // create a WebGL Renderer
+    s.renderer = s.createRenderer({
+        container: s.container
+    });
 
     s.camera = new THREE.PerspectiveCamera((config.fov || 45), s.container.offsetWidth / s.container.offsetHeight, 1, 10000);
     s.currentCamera = s.camera;
@@ -39,6 +41,8 @@ function Game(container, config) {
         Game.instance = this;
     }
 
+    s.custormRenderFunction = null;
+
     // size
     s.resize();
 
@@ -58,6 +62,17 @@ Game.prototype = {
 
     get currentScene() {
         return this.scenes[this.sceneID];
+    },
+
+    createRenderer: function(ps) {
+        var renderer = new THREE.WebGLRenderer({antialias: true, alpha: (ps.alpha == undefined || true)});
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(ps.width, ps.height);
+        renderer.autoClear = ps.autoClear;
+        if (ps.container) {
+            ps.container.appendChild(renderer.domElement);
+        }
+        return renderer;
     },
 
     addScene: function() {
@@ -210,11 +225,11 @@ Game.prototype = {
         }
     }(),
 
-    getPickObject: function(mouse) {
+    getPickObject: function(mouse, objects) {
         var s = this;
         s.rayCast.setFromCamera(mouse, s.camera);
 
-        var intersects = s.rayCast.intersectObjects(s.scenes[s.sceneID].children, true);
+        var intersects = s.rayCast.intersectObjects((objects || s.scenes[s.sceneID].children), true);
         for (var i = 0; i < intersects.length; i++) {
             var intersect = intersects[i];
             if (intersect.mouseEnabled == undefined || object.mouseEnabled) {
@@ -239,26 +254,26 @@ Game.prototype = {
                 return;
             }
 
+            var deltaTime = s.deltaTime;
+            s.invokeComponent(s, 'update', deltaTime);
+            s.emit('update', deltaTime);
+
             if (cnt == s.lazyUpdateRate) {
                 cnt = 0;
                 s.emit('lazyUpdate');
             }
-
-            var deltaTime = s.deltaTime;
-            s.invokeComponent(s, 'update', deltaTime);
-            s.emit('update', deltaTime);
 
             s.renderer.clear();
 
             if (s.custormRenderFunction) {
                 s.custormRenderFunction(deltaTime);
             } else {
-                s._render();
+                s.defaultRender();
             }
         }
     }(),
 
-    _render: function() {
+    defaultRender: function() {
         this.renderer.render(this.scenes[this.sceneID], this.currentCamera);
     },
 
