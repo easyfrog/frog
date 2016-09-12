@@ -78,6 +78,7 @@ fragmentShader = fragmentShader.replace('vec4 diffuseColor = vec4( diffuse, opac
  * ps:
  *     color,
  *     map,
+ *     side,             // THREE.FrontSide
  *     envMap,
  *     reflectivity,     // 总体的反射强度, 默认 0.5
  *     
@@ -112,6 +113,7 @@ module.exports = function( ps ) {
         fragmentShader: fragmentShader,
         lights: true,
         fog: true,
+        side: ps.side || 0
     });
 
     phongMat.uniforms.envMap.value       = ps.envMap;
