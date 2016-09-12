@@ -1,0 +1,36 @@
+{
+    "folders": [
+        {
+            "file_exclude_patterns":
+            [
+                "*.sublime*"
+            ],
+            "folder_exclude_patterns":
+            [
+                "node_modules"
+            ],
+            "path": "."
+        }
+    ],
+    "ternjs": {
+        "exclude":
+        [
+            "node_modules/**",
+            "**/*.min.js",
+            "templates/**",
+            "**/*_grunt.js",
+            "projects/_closed/**",
+            "libs/extra/loaders/**",
+            "libs/extra/shaders/**",
+            "libs/extra/postprocessing/**"
+        ],
+        "libs":
+        [
+            "browser",
+            "jquery"
+        ],
+        "plugins": {
+            
+        }
+    }
+}
