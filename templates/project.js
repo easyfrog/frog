@@ -52,6 +52,12 @@ function init() {
     });
 }
 
+// 更新控制器
+game.on('update', function(dt) {
+    // game.controller.autoRotateSpeed = -10 * game.deltaTime;
+    game.controller.update();
+});
+
 function onLoadComplete(group, remain) {
 	// scene load complete
 
