@@ -40,6 +40,7 @@ function init() {
 
     glo.loader.on('progress', function(p) {
         console.log(p.progress + '%');
+
         /*
         glo.progressText.html((p.progress * 100).toFixed(1) + '%');
         if (p.type == 'sea3d_download') {
@@ -55,3 +56,5 @@ function onLoadComplete(group, remain) {
 	// scene load complete
 
 }
+
+

@@ -16,12 +16,12 @@ function Game(container, config) {
         container: s.container
     });
 
-    s.camera = new THREE.PerspectiveCamera((config.fov || 45), s.container.offsetWidth / s.container.offsetHeight, 1, 10000);
+    s.camera = new THREE.PerspectiveCamera((this.config.fov || 45), s.container.offsetWidth / s.container.offsetHeight, 1, 10000);
     s.currentCamera = s.camera;
     s.scenes = [];
 
     s.clock = new THREE.Clock();
-    s.lazyUpdateRate = this.config.lazyUpdateRate || 15;
+    s.fixedUpdateRate = this.config.fixedUpdateRate || 10;
 
     // 默认Scene
     s.scenes.push(new THREE.Scene());
@@ -32,6 +32,10 @@ function Game(container, config) {
 
     s.rayCast = new THREE.Raycaster();
     s.pause = false;
+
+    s._renderStep = 2;
+
+    s.deltaTime = 1;
 
     // component
     s.components = [];
@@ -56,8 +60,20 @@ function Game(container, config) {
 Game.prototype = {
     constructor: Game,
 
-    get deltaTime() {
+    getDeltaTime: function() {
         return this.clock.getDelta();
+    },
+
+    get frameRate() {
+        if (this._renderStep < 1) {
+            this._renderStep = 1;
+        }
+        return 60 / this._renderStep;
+    },
+
+    set frameRate(val) {
+        val = THREE.Math.clamp(val, 1, 60);
+        this._renderStep = Math.round(60 / val);
     },
 
     get currentScene() {
@@ -240,7 +256,7 @@ Game.prototype = {
     },
 
     update: function() {
-        var cnt = 0;
+        var cnt = 0, renderCnt = 0;
 
         return function(once) {
             var s = this;
@@ -248,33 +264,44 @@ Game.prototype = {
             if (!once) {
                 requestAnimationFrame(s.update.bind(s, once));
                 cnt ++;
+                renderCnt ++;
             }
 
-            if (s.pause) {
+            // once 时,可以忽略pause
+            if (s.pause && !once) {
                 return;
             }
 
-            var deltaTime = s.deltaTime;
-            s.invokeComponent(s, 'update', deltaTime);
-            s.emit('update', deltaTime);
-
-            if (cnt == s.lazyUpdateRate) {
+            if (cnt == s.fixedUpdateRate) {
                 cnt = 0;
-                s.emit('lazyUpdate');
+                s.emit('fixedUpdate');
             }
 
-            s.renderer.clear();
+            // 降频
+            if (renderCnt >= s._renderStep || once) {
+                renderCnt = 0;
 
-            if (s.custormRenderFunction) {
-                s.custormRenderFunction(deltaTime);
-            } else {
-                s.defaultRender();
+                s.deltaTime = s.getDeltaTime();
+                s.invokeComponent(s, 'update', s.deltaTime);
+                s.emit('update', s.deltaTime);
+
+                s.renderer.clear();
+
+                if (s.custormRenderFunction) {
+                    s.custormRenderFunction(s.deltaTime);
+                } else {
+                    s.defaultRender();
+                }
             }
         }
     }(),
 
     defaultRender: function() {
         this.renderer.render(this.scenes[this.sceneID], this.currentCamera);
+    },
+
+    forceUpdate: function() {
+        this.update(true);
     },
 
     resize: function() {
@@ -306,3 +333,10 @@ Game.prototype = {
         }
     },
 };
+
+
+
+
+
+
+

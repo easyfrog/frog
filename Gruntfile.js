@@ -50,8 +50,8 @@ module.exports = function(grunt) {
 		var jsfile = 'projects/' + project + '/' + project + '.js';
 		var gruntfile = 'projects/' + project + '/' + project + '_grunt.js';
 
-		if (!grunt.file.exists('projects/')) {
-			grunt.file.mkdir('projects/');
+		if (!grunt.file.exists('/projects/')) {
+			grunt.file.mkdir('/projects/');
 		}
 
 		if (!grunt.file.exists(jsfile)) {
