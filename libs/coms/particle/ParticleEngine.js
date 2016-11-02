@@ -286,7 +286,6 @@ function ParticleEngine()
 		fragmentShader: particleFragmentShader,
 		transparent: true, // alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5, 
 		blending: THREE.NormalBlending, depthTest: true
-		
 	});
 	this.particleMesh = new THREE.Mesh();
 
@@ -294,7 +293,7 @@ function ParticleEngine()
 	this.updateCallback = this._update.bind(this);
 
 	var s = this;
-	Game.instance.addEventListener(Game.UPDATE, s.updateCallback);
+	Game.instance.on('update', s.updateCallback);
 }
 
 ParticleEngine.Type = Type;
@@ -489,7 +488,7 @@ ParticleEngine.prototype.initialize = function() {
 	this.particleMesh.alphaTest = 0.5;
 
 	this.particleMesh.add(this.meshGoup);
-	Game.instance.scene.add( this.particleMesh );
+	Game.instance.currentScene.add( this.particleMesh );
 
 	console.log('ParticleEngine initialize.');
 }
@@ -596,7 +595,7 @@ ParticleEngine.prototype.start = function() {
 ParticleEngine.prototype.destroy = function(boo) {
 	var s = this;
 	if (!boo) {
-		Game.instance.removeEventListener(Game.UPDATE, s.updateCallback);
+		Game.instance.off('update', s.updateCallback);
 	}
 
 	// delete old custom meshes
@@ -606,7 +605,7 @@ ParticleEngine.prototype.destroy = function(boo) {
 		}
 	}
 
-    Game.instance.scene.remove( s.particleMesh );
+    Game.instance.currentScene.remove( s.particleMesh );
 }
 
 ParticleEngine.prototype.setPosition = function(pos) {

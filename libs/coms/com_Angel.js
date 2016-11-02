@@ -18,6 +18,7 @@ var delta;
  *     maxValue,        // opacity or other property max value
  *     stepMode,        // is true action(bool), is false action(0~1)
  *     action           // function handler your self
+ *     fadeToTime,      // fade to time 0.6
  */
 
 function com_Angel(params) {
@@ -34,6 +35,8 @@ function com_Angel(params) {
 
     this.min = params.min || .75;
     this.max = params.max || .92;
+
+    this.fadeToTime = utils.fmg(params, 'fadeToTime', .6);
 
     this.action = params.action;
     this.isIn = undefined;
@@ -75,7 +78,7 @@ com_Angel.prototype.addFriends = function(friends) {
 com_Angel.prototype.update = function() {
     var s = this;
     delta = s.max - s.min;
-    var dir = utils.cameraDirection(s.camera).normalize();
+    var dir = utils.getDirection(s.camera).normalize();
 
     if (s.horizontalOnly) {
         dir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
@@ -92,7 +95,8 @@ com_Angel.prototype.update = function() {
                 mats: s.mats,
                 min: s.minValue,
                 max: s.maxValue,
-                inout: _b
+                inout: _b,
+                time: s.fadeToTime
             });
         }
     }

@@ -110,6 +110,22 @@ Game.prototype = {
         return this.scenes[sceneID].getObjectByName(name);
     },
 
+    getObjects: function() {
+        var args = arguments;
+        var lastArg = args[args.length - 1];
+        var sid = typeof lastArg == 'number' ? lastArg : 0;
+
+        var res = [];
+
+        this.scenes[sid].traverse(function(obj) {
+            if (Array.prototype.indexOf.call(args, obj.name) > -1) {
+                res.push(obj);
+            }
+        });
+
+        return res;
+    },
+
     /**
      * 指定物体(组), 来播放指定的动画
      */
@@ -328,7 +344,7 @@ Game.prototype = {
                 continue;
             }
             if (com[comName]) {
-                com[comName](param);
+                com[comName](params);
             }
         }
     },

@@ -131,7 +131,7 @@ SeaLoader.prototype = {
             this._load(this.currentWork);
         } else {
             this.isLoading = false;
-            this.emit('complete');
+            this.emit('complete', this.currentWork.groupName);
         }
     },
 

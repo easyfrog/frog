@@ -36,6 +36,18 @@ THREE.Object3D.prototype.removeComponent = function(com) {
     }
 };
 
+THREE.Object3D.prototype.getComponent = function(comName) {
+    var coms = this.components;
+
+    if (coms) {
+        for (var i = 0; i < coms.length; i++) {
+            if (coms[i].name == comName) {
+                return coms[i];
+            }
+        }
+    }
+};
+
 /////////////////////////////////
 // OrbitControl extends 
 /////////////////////////////////
