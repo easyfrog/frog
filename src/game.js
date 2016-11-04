@@ -20,7 +20,7 @@ function Game(container, config) {
     s.currentCamera = s.camera;
     s.scenes = [];
 
-    s.clock = new THREE.Clock();
+    s.timer = new THREE.Clock();
     s.fixedUpdateRate = this.config.fixedUpdateRate || 10;
 
     // 默认Scene
@@ -61,7 +61,7 @@ Game.prototype = {
     constructor: Game,
 
     getDeltaTime: function() {
-        return this.clock.getDelta();
+        return this.timer.getDelta();
     },
 
     get frameRate() {
@@ -110,6 +110,7 @@ Game.prototype = {
         return this.scenes[sceneID].getObjectByName(name);
     },
 
+    // [name .... , sid]
     getObjects: function() {
         var args = arguments;
         var lastArg = args[args.length - 1];
@@ -298,6 +299,8 @@ Game.prototype = {
                 renderCnt = 0;
 
                 s.deltaTime = s.getDeltaTime();
+                if (s.deltaTime > 1) {s.deltaTime = 1;}
+                
                 s.invokeComponent(s, 'update', s.deltaTime);
                 s.emit('update', s.deltaTime);
 

@@ -12,6 +12,9 @@
 				"build"
 			],
 			"path": "."
+		},
+		{
+			"path": "/Users/fengmap"
 		}
 	],
 	"ternjs":

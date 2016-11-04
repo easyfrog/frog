@@ -9,7 +9,10 @@ var delta;
 
 /**
  * params:
+ *     game,
+ *     controls,
  *     direction,
+ *     directionInverse, // direction iverse use to panorama from center look outter
  *     horizontalOnly,
  *     friends,         // default opacity do together
  *     min,             // angle begin
@@ -23,9 +26,12 @@ var delta;
 
 function com_Angel(params) {
     this.name = 'com_Angel';
+
+    Object.assign(this, params);
     
-    g = Game.instance;
-    this.camera = g.camera;
+    g = params.game || Game.instance;
+    this.controller = params.controller || g.controller;
+    this.camera = g.controller.object;
 
     params.friends = params.friends || [];
 
@@ -33,7 +39,7 @@ function com_Angel(params) {
 
     this.direction = params.direction;
 
-    this.min = params.min || .75;
+    this.min = params.min || .85;
     this.max = params.max || .92;
 
     this.fadeToTime = utils.fmg(params, 'fadeToTime', .6);
@@ -49,9 +55,6 @@ function com_Angel(params) {
 
     this.horizontalOnly = params.horizontalOnly;
 
-    if (this.horizontalOnly) {
-        this.direction = new THREE.Vector3(this.direction.x, 0, this.direction.z).normalize();
-    }
 };
 
 // Start
@@ -59,6 +62,25 @@ com_Angel.prototype.start = function() {
     console.log(this.name, 'start');
     // collect materials
     cm(this);
+
+    if (!this.direction) {
+        this.updateDirection();
+    }
+};
+
+com_Angel.prototype.updateDirection = function() {
+    var from = this.object.getWorldPosition().clone();
+    var to = this.controller.target.clone();
+
+    if (this.directionInverse) {
+        this.direction = from.sub(to).normalize();
+    } else {
+        this.direction = to.sub(from).normalize();
+    }
+
+    if (this.horizontalOnly) {
+        this.direction = new THREE.Vector3(this.direction.x, 0, this.direction.z).normalize();
+    }
 };
 
 var cm = function(f) {
@@ -98,6 +120,11 @@ com_Angel.prototype.update = function() {
                 inout: _b,
                 time: s.fadeToTime
             });
+        }
+
+        // 状态改变的回调
+        if (s.onChanged) {
+            s.onChanged(_b);
         }
     }
 

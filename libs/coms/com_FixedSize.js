@@ -8,7 +8,7 @@
  * 		game,
  * 		controller,
  * 		multiply,    // scale 的增量
- * 		fixedHeight, // 高度会根据大小的变化而变化.
+ * 		fixedHeight, // 高度会根据大小的变化而变化. 1 0 -1
  */
 function com_FixedSize(params) {
     this.name = 'com_FixedSize';
@@ -34,8 +34,9 @@ com_FixedSize.prototype = {
     		var _s = this._getScale();
     		this.object.scale.set(this.originScale.x * _s * this.multiply, this.originScale.y * _s * this.multiply, 1);
 
+    		// fixedHeight: 1, 0, -1
     		if (this.fixedHeight) {
-    			this.object.position.y = this.originPosition.y + (this.originScale.y - this.object.scale.y);
+    			this.object.position.y = this.originPosition.y + this.fixedHeight * (this.originScale.y - this.object.scale.y);
     		}
     	}
     },
