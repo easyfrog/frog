@@ -58,7 +58,7 @@ module.exports = function(grunt) {
 			grunt.needLibs = true;
 
 			var targetVersion = '<%= grunt.targetVersion %>';
-			if (targetVersion == '') {targetVersion = 'r80';}
+			if (targetVersion == '') {targetVersion = 'r82';}
 
 			// 库文件版本 r72 | r76
 			grunt.needLibsVersion = version || targetVersion;

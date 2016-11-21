@@ -1,7 +1,7 @@
 /**
  * Game class
  */
-function Game(container, config) {
+Game = function(container, config) {
     var s = this;
 
     // event
@@ -56,6 +56,8 @@ function Game(container, config) {
     // update event
     s.update();
 };
+
+// module.exports = Game;
 
 Game.prototype = {
     constructor: Game,

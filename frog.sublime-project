@@ -12,9 +12,6 @@
 				"build"
 			],
 			"path": "."
-		},
-		{
-			"path": "/Users/fengmap"
 		}
 	],
 	"ternjs":
@@ -28,6 +25,8 @@
 			"projects/_closed/**",
 			"libs/extra/loaders/**",
 			"libs/extra/shaders/**",
+			"libs/extra/threejs/r79/**",
+			"libs/extra/threejs/r80/**",
 			"libs/extra/postprocessing/**",
 			"libs/coms/**"
 		],

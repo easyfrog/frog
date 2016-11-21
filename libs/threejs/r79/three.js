@@ -4,7 +4,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-var THREE = { REVISION: '79' };
+THREE = { REVISION: '79' };
 
 //
 

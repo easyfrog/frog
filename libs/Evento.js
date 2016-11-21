@@ -27,6 +27,11 @@ Evento = {
             return obj;
         }
 
+        // get handlers by eventName
+        obj.getHandlers = function(eventName) {
+            return handlers[eventName];
+        }
+
         // add a listener that will only be called once
         obj.once = function(eventName, handler) {
             // create a wrapper listener, that will remove itself after it is called
